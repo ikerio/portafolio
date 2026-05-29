@@ -1,0 +1,27 @@
+{
+  "name": "iker-toledo-portfolio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Immersive scroll-driven Three.js portfolio / CV for Iker Toledo.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0",
+    "lil-gui": "^0.21.0",
+    "postprocessing": "^6.39.1",
+    "three": "^0.184.0",
+    "troika-three-text": "^0.52.4"
+  },
+  "devDependencies": {
+    "@types/three": "^0.184.1",
+    "stats.js": "^0.17.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14",
+    "vite-plugin-glsl": "^1.6.0"
+  }
+}

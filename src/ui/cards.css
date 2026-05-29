@@ -1,0 +1,310 @@
+/* =====================================================================
+   cards.css — anchored glass info-card. Driven by a single custom prop
+   --reveal (0..1, set per-frame by CardSystem): the panel grows from a
+   line, corner brackets draw in, and text masks upward. Position + screen
+   opacity are set inline by JS from the projected 3D anchor.
+   ===================================================================== */
+
+.card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(290px, 27vw, 400px);
+  opacity: 0;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.card-inner {
+  position: relative;
+  overflow: hidden;
+  padding: var(--s-6) var(--s-6) var(--s-5);
+  /* frosted / brushed glass: opaque enough to read, heavy blur, warm edge */
+  background: linear-gradient(135deg, rgba(38, 32, 25, 0.84), rgba(17, 14, 11, 0.92));
+  border: 1px solid var(--line);
+  border-top: 1px solid var(--line-amber);
+  backdrop-filter: blur(22px) saturate(1.18) brightness(1.04);
+  -webkit-backdrop-filter: blur(22px) saturate(1.18) brightness(1.04);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(236, 227, 212, 0.06);
+  border-radius: 0 0 var(--r-sm) var(--r-sm);
+  /* grow from the top line downward */
+  clip-path: inset(0 0 calc((1 - var(--reveal)) * 100%) 0);
+}
+/* faint brushed sheen across the panel */
+.card-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(244, 232, 201, 0.05), transparent 42%, transparent 70%, rgba(244, 232, 201, 0.03));
+  pointer-events: none;
+}
+
+/* corner brackets */
+.bracket {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 0 solid var(--line-amber);
+  opacity: var(--reveal);
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.bracket.tl { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; transform-origin: top left; transform: scale(var(--reveal)); }
+.bracket.tr { top: -1px; right: -1px; border-top-width: 1px; border-right-width: 1px; transform-origin: top right; transform: scale(var(--reveal)); }
+.bracket.bl { bottom: -1px; left: -1px; border-bottom-width: 1px; border-left-width: 1px; transform-origin: bottom left; transform: scale(var(--reveal)); }
+.bracket.br { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; transform-origin: bottom right; transform: scale(var(--reveal)); }
+
+/* text masks up after the panel is mostly open */
+.card-inner > * {
+  opacity: clamp(0, calc((var(--reveal) - 0.5) / 0.4), 1);
+  transform: translateY(calc((1 - clamp(0, calc((var(--reveal) - 0.5) / 0.4), 1)) * 8px));
+}
+
+.card-num {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--amber-dim);
+  margin-bottom: var(--s-2);
+}
+.card-title {
+  font-family: var(--font-display);
+  font-size: 23px;
+  color: var(--ink-0);
+  line-height: 1.1;
+  margin-bottom: var(--s-3);
+}
+.card-body {
+  color: var(--ink-1);
+  font-size: 15px;
+  line-height: 1.65;
+  margin-bottom: var(--s-4);
+}
+.card-foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-2);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line-soft);
+}
+
+/* ---- player card (Discos soundsystem) ---- */
+.card.player { width: clamp(220px, 22vw, 300px); }
+.player-row { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-3); }
+.player-toggle {
+  width: 38px; height: 38px;
+  flex: none;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-amber);
+  background: var(--glass-hi);
+  color: var(--amber);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.player-toggle:hover { border-color: var(--amber); color: var(--ink-0); }
+.player-now {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-1);
+}
+.player-list { display: flex; flex-direction: column; gap: 2px; }
+.player-track {
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  padding: 7px 2px;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.player-track:hover { color: var(--ink-0); }
+.player-track.on { color: var(--amber); }
+
+/* hover: lift + warm edge (only when interactive, reveal > 0.85) */
+.card:hover .card-inner {
+  border-top-color: var(--amber);
+  box-shadow: var(--shadow-deep), var(--glow-amber);
+  transition: box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+}
+
+/* ===== Tier B — expandable cards + reader overlay ===== */
+
+/* subtle "this opens" indicator (not flashy: a muted mono hint that warms on hover) */
+.card.has-overlay { cursor: pointer; }
+.card-more {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--amber-dim);
+  opacity: 0.6;
+  margin-bottom: var(--s-3);
+  transition: opacity var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.card.has-overlay:hover .card-more { opacity: 1; color: var(--amber); }
+
+.cardov { position: fixed; inset: 0; z-index: 70; display: none; }
+.cardov.on { display: block; }
+.cardov-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 7, 6, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  animation: cardov-bg-in var(--dur-base) var(--ease-out) forwards;
+}
+.cardov.closing .cardov-bg { animation: cardov-bg-out 0.22s var(--ease-out) forwards; }
+.cardov-panel {
+  --reveal: 1; /* so the shared corner brackets render fully */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(330px, 56vw, 680px);
+  max-height: 84vh;
+  overflow: hidden; /* clip the -1px corner brackets so they don't trigger scrollbars */
+  background: linear-gradient(135deg, rgba(38, 32, 25, 0.93), rgba(15, 12, 9, 0.97));
+  border: 1px solid var(--line-amber);
+  box-shadow: var(--shadow-deep), var(--glow-amber);
+  border-radius: var(--r-sm);
+  transform: translate(-50%, -50%);
+  animation: cardov-in 0.4s var(--ease-out) forwards;
+}
+/* only the content scrolls, vertically; never horizontally */
+.cardov-scroll {
+  max-height: calc(84vh - 2 * var(--s-6));
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--s-6);
+  overflow-wrap: anywhere;
+}
+.cardov.closing .cardov-panel { animation: cardov-out 0.22s var(--ease-out) forwards; }
+.cardov-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(244, 232, 201, 0.05), transparent 42%, transparent 70%, rgba(244, 232, 201, 0.03));
+}
+.cardov-x {
+  position: absolute;
+  top: var(--s-4);
+  right: var(--s-4);
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--ink-2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.cardov-x:hover { color: var(--amber); border-color: var(--line-amber); }
+.cardov-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--amber-dim);
+  margin-bottom: var(--s-3);
+}
+.cardov-title {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 34px);
+  color: var(--ink-0);
+  line-height: 1.12;
+  margin-bottom: var(--s-5);
+}
+.cardov-body p { color: var(--ink-1); font-size: 15px; line-height: 1.7; margin-bottom: var(--s-4); }
+.cardov-meta { display: grid; gap: var(--s-2); margin-top: var(--s-3); border-top: 1px solid var(--line-soft); padding-top: var(--s-4); }
+.cardov-row { display: flex; flex-wrap: wrap; gap: 2px var(--s-3); font-family: var(--font-mono); font-size: var(--t-small); }
+.cardov-row b { flex: none; min-width: 130px; color: var(--amber-dim); text-transform: uppercase; letter-spacing: var(--track-label); font-weight: 500; }
+.cardov-row span { color: var(--ink-2); }
+.cardov-note { margin-top: var(--s-4); font-family: var(--font-mono); font-size: var(--t-small); font-style: italic; color: var(--amber-dim); letter-spacing: 0.02em; }
+
+@keyframes cardov-bg-in { to { opacity: 1; } }
+@keyframes cardov-bg-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes cardov-in { from { transform: translate(-50%, -50%) scale(0.96); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+@keyframes cardov-out { from { transform: translate(-50%, -50%) scale(1); opacity: 1; } to { transform: translate(-50%, -50%) scale(0.97); opacity: 0; } }
+
+body.reduced .cardov-bg,
+body.reduced .cardov-panel { animation: none !important; }
+
+/* ===== Tier C — connector pull-quotes (between stations) ===== */
+.connector {
+  position: fixed;
+  left: 50%;
+  top: 64%;
+  width: clamp(280px, 42vw, 540px);
+  transform: translate(-50%, -50%);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+.connector-mark {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  color: var(--amber-dim);
+  margin-bottom: var(--s-2);
+}
+.connector p {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(17px, 2vw, 22px);
+  line-height: 1.4;
+  color: var(--ink-1);
+}
+
+/* ===== Trajectory finale — timeline panel ===== */
+.traj {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: clamp(320px, 50vw, 640px);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 40;
+  font-family: var(--font-mono);
+}
+.traj-panel {
+  position: relative;
+  padding: var(--s-6);
+  background: linear-gradient(135deg, rgba(38, 32, 25, 0.86), rgba(15, 12, 9, 0.94));
+  border: 1px solid var(--line-amber);
+  backdrop-filter: blur(20px) saturate(1.1);
+  -webkit-backdrop-filter: blur(20px) saturate(1.1);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(236, 227, 212, 0.06);
+  border-radius: var(--r-sm);
+}
+.traj-kicker { font-size: var(--t-label); letter-spacing: var(--track-label); color: var(--amber); margin-bottom: var(--s-3); }
+.traj-title { font-family: var(--font-display); font-style: italic; font-size: clamp(22px, 2.6vw, 30px); color: var(--ink-0); line-height: 1.15; margin-bottom: var(--s-5); }
+.traj-list { list-style: none; display: grid; border-left: 1px solid var(--line-amber); margin-left: 4px; }
+.traj-list li { position: relative; padding: var(--s-3) 0 var(--s-3) var(--s-5); }
+.traj-list li::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: calc(var(--s-3) + 5px);
+  width: 7px;
+  height: 7px;
+  background: var(--amber);
+  border-radius: var(--r-pill);
+  box-shadow: var(--glow-amber);
+}
+.traj-date { display: block; font-size: var(--t-label); letter-spacing: var(--track-label); color: var(--amber-dim); margin-bottom: 2px; }
+.traj-org { font-family: var(--font-display); font-size: 17px; color: var(--ink-0); margin-right: var(--s-3); }
+.traj-role { color: var(--ink-2); font-size: var(--t-small); }

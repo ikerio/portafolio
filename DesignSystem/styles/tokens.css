@@ -1,0 +1,94 @@
+/* =====================================================================
+   IKER TOLEDO — PORTFOLIO DESIGN SYSTEM · TOKENS
+   Warm-dark, matte, editorial-serif + monospace. Top-right light source.
+   These are the canonical variables to hand to Claude Code.
+   ===================================================================== */
+
+:root {
+  /* ---- COLOR · warm-dark mattes (oklch-derived, hex for reliability) ---- */
+  --void:        #0a0908;   /* deepest shadow / page edges            */
+  --bg-0:        #100e0c;   /* page base                              */
+  --bg-1:        #16130f;   /* section / panel                        */
+  --bg-2:        #1d1915;   /* raised surface                         */
+  --bg-3:        #262019;   /* hover surface                          */
+
+  /* warm light source — used for glow & bloom, never as flat fill */
+  --glow-core:   #f4e8c9;   /* hot center of the light                */
+  --glow-warm:   #e9d8b3;   /* sand glow                              */
+  --amber:       #d9bd84;   /* the single accent — used sparingly     */
+  --amber-dim:   #9c8a63;
+
+  /* ink — warm off-whites stepping down to faint */
+  --ink-0:       #ece3d4;   /* primary text / display                 */
+  --ink-1:       #b6ab98;   /* secondary / body                       */
+  --ink-2:       #7d7565;   /* tertiary / metadata                    */
+  --ink-3:       #564f45;   /* faint / disabled / grid                */
+  --ink-4:       #322d27;   /* hairline-on-dark                       */
+
+  /* hairlines & glass */
+  --line:        rgba(236, 227, 212, 0.11);
+  --line-soft:   rgba(236, 227, 212, 0.06);
+  --line-strong: rgba(236, 227, 212, 0.20);
+  --line-amber:  rgba(217, 189, 132, 0.45);
+
+  --glass-fill:  rgba(28, 24, 19, 0.42);
+  --glass-hi:    rgba(40, 34, 27, 0.55);
+  --glass-blur:  14px;
+
+  /* ---- TYPE ---- */
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* type scale (display in rem, ui-mono mostly fixed px) */
+  --t-hero:      clamp(48px, 7vw, 104px);
+  --t-display:   clamp(34px, 4.6vw, 62px);
+  --t-h1:        clamp(28px, 3vw, 40px);
+  --t-h2:        24px;
+  --t-h3:        18px;
+  --t-body:      16px;
+  --t-small:     13px;
+  --t-label:     11px;   /* tracked uppercase mono labels */
+  --t-micro:     10px;
+
+  --track-label: 0.22em; /* letter-spacing for mono labels */
+  --track-nav:   0.04em;
+
+  /* ---- SPACING · 8px base grid ---- */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  24px;
+  --s-6:  32px;
+  --s-7:  48px;
+  --s-8:  64px;
+  --s-9:  96px;
+  --s-10: 128px;
+  --s-11: 192px;
+
+  /* ---- RADIUS · cards are nearly square ---- */
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-pill: 999px;
+
+  /* ---- ELEVATION / GLOW ---- */
+  --shadow-card: 0 24px 60px -28px rgba(0,0,0,0.85);
+  --shadow-deep: 0 40px 120px -40px rgba(0,0,0,0.9);
+  --glow-amber:  0 0 0 1px var(--line-amber), 0 0 32px -6px rgba(217,189,132,0.28);
+
+  /* ---- MOTION · GSAP-friendly named values ---- */
+  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);     /* power3.out  */
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);    /* power2.io   */
+  --ease-soft:  cubic-bezier(0.33, 1, 0.68, 1);    /* cubic.out   */
+  --dur-fast:   240ms;
+  --dur-base:   520ms;
+  --dur-slow:   900ms;
+  --dur-scene:  1400ms;   /* camera move between scenes            */
+
+  /* ---- LAYOUT ---- */
+  --maxw: 1320px;
+  --gutter: clamp(20px, 5vw, 72px);
+  --frame-w: 1600px;   /* storyboard frame native size (16:9)      */
+  --frame-h: 900px;
+}

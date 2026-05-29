@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#100e0c" />
+    <title>Iker Toledo · Mitos ejecutables, mecanismos vivos</title>
+    <meta
+      name="description"
+      content="Diseñador industrial convertido en fundador y tecnólogo. Un recorrido por los mundos que he construido, en luz, código y ASCII."
+    />
+
+    <!-- DOM type: Newsreader (display serif) + JetBrains Mono (mono labels). The hero 3D
+         typography uses a local TTF (public/fonts) sampled by troika-three-text. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Fixed WebGL surface — sits behind the smooth-scrolled content. -->
+    <canvas id="gl" aria-hidden="true"></canvas>
+
+    <!-- Fixed overlay where CardSystem positions DOM glass cards from projected 3D anchors. -->
+    <div id="card-layer" aria-hidden="true"></div>
+
+    <!-- Top chrome (nav, section indicator, toggles) — populated by ui/Chrome.ts -->
+    <header id="chrome"></header>
+
+    <!-- Boot / asset loader -->
+    <div id="loader" role="status" aria-live="polite">
+      <div class="loader-mark">IT<span>/</span></div>
+      <div class="loader-bar"><span id="loader-fill"></span></div>
+      <div class="loader-label">Composing the world…</div>
+    </div>
+
+    <!-- ScrollSmoother structure: smooth-content is the only element transformed; the
+         canvas above stays fixed behind it. Chapter sections are full-viewport spacers
+         that give the page its scroll length (one per narrative stop). -->
+    <div id="smooth-wrapper">
+      <div id="smooth-content">
+        <main id="scroll-sections">
+          <section class="chapter" data-chapter="arrival" aria-label="Arrival"></section>
+          <section class="chapter" data-chapter="hero" aria-label="Identity"></section>
+          <section class="chapter" aria-hidden="true"></section>
+          <section class="chapter" data-chapter="who" aria-label="Who I am"></section>
+          <section class="chapter" aria-hidden="true"></section>
+          <section class="chapter" aria-hidden="true"></section>
+          <section class="chapter" aria-hidden="true"></section>
+          <section class="chapter" aria-hidden="true"></section>
+          <section class="chapter" aria-hidden="true"></section>
+          <section class="chapter" aria-hidden="true"></section>
+          <section class="chapter" aria-hidden="true"></section>
+          <section class="chapter" aria-hidden="true"></section>
+        </main>
+
+        <!-- Semantic, always-in-DOM CV. Visually hidden during the experience (screen
+             readers still reach it); revealed in full when WebGL is unavailable or the
+             visitor chooses reduced motion. Populated by ui/CVFallback.ts -->
+        <aside id="cv-fallback" aria-label="Curriculum Vitae"></aside>
+      </div>
+    </div>
+
+    <noscript>
+      <div class="noscript-cv">
+        <h1>Iker Toledo</h1>
+        <p>Mitos ejecutables, mecanismos vivos. Esta experiencia necesita JavaScript.
+           Escríbeme a <a href="mailto:deikerio@gmail.com">deikerio@gmail.com</a>.</p>
+      </div>
+    </noscript>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

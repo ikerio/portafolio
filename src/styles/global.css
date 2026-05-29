@@ -1,0 +1,231 @@
+/* =====================================================================
+   global.css — layout + chrome + loader + CV fallback. Visual tokens come
+   from DesignSystem/styles/tokens.css (imported first in main.ts).
+   ===================================================================== */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-0);
+  color: var(--ink-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ---- WebGL surface (fixed, behind smooth-scrolled content) ---- */
+#gl {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  z-index: 0;
+}
+
+/* ---- ScrollSmoother structure ---- */
+#smooth-wrapper { position: relative; z-index: 1; }
+#scroll-sections { position: relative; }
+.chapter { height: 100vh; width: 100%; pointer-events: none; }
+
+/* ---- Card overlay (JS-positioned, projected from 3D) ---- */
+#card-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ---- Top chrome ---- */
+#chrome {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 6;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--s-5);
+  padding: var(--s-5) var(--gutter);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+#chrome .toggle, #chrome .brand, .chrome-nav .nav-item { pointer-events: auto; }
+
+.chrome-left { display: flex; align-items: flex-start; gap: var(--s-4); }
+.brand {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--ink-0);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.brand span { color: var(--amber); }
+.tagline {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+.chrome-nav { display: flex; gap: var(--s-5); }
+.chrome-nav span {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.chrome-nav .nav-item {
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.chrome-nav .nav-item:hover,
+.chrome-nav .nav-item:focus-visible { color: var(--ink-0); outline: none; }
+.chrome-nav span.on { color: var(--amber); }
+
+.chrome-right { display: flex; align-items: center; gap: var(--s-4); }
+.indicator {
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--amber-dim);
+}
+.toggle {
+  background: var(--glass-fill);
+  border: 1px solid var(--line);
+  color: var(--ink-1);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--track-nav);
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  backdrop-filter: blur(var(--glass-blur));
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.toggle:hover { border-color: var(--line-amber); color: var(--ink-0); }
+.toggle[aria-pressed='true'] { border-color: var(--line-amber); color: var(--amber); }
+
+/* ---- Scroll hint ---- */
+.scroll-hint {
+  position: fixed;
+  bottom: var(--s-6);
+  left: var(--gutter);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink-2);
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.scroll-hint .mouse {
+  width: 16px; height: 26px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  position: relative;
+}
+.scroll-hint .mouse::after {
+  content: '';
+  position: absolute;
+  top: 5px; left: 50%;
+  width: 2px; height: 5px;
+  background: var(--amber);
+  transform: translateX(-50%);
+  border-radius: 2px;
+  animation: scrollDot 1.6s var(--ease-inout) infinite;
+}
+@keyframes scrollDot { 0% { opacity: 0; transform: translate(-50%, 0); } 40% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, 8px); } }
+
+/* ---- Loader ---- */
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  background: var(--bg-0);
+  transition: opacity var(--dur-slow) var(--ease-out), visibility var(--dur-slow);
+}
+#loader.loaded { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-mark { font-family: var(--font-display); font-size: 64px; color: var(--ink-0); }
+.loader-mark span { color: var(--amber); }
+.loader-bar { width: 180px; height: 1px; background: var(--line); overflow: hidden; }
+.loader-bar span { display: block; height: 100%; width: 0%; background: var(--amber); transition: width var(--dur-base) var(--ease-out); }
+.loader-label { font-size: var(--t-label); letter-spacing: var(--track-label); text-transform: uppercase; color: var(--ink-3); }
+
+/* ---- CV fallback: sr-only during the experience, overlay when opened ---- */
+#cv-fallback {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+body.cv-open #cv-fallback {
+  position: fixed;
+  inset: 0;
+  width: auto; height: auto;
+  margin: 0;
+  clip: auto;
+  white-space: normal;
+  overflow: auto;
+  z-index: 50;
+  background: var(--bg-0);
+}
+body.cv-open #gl,
+body.cv-open #card-layer,
+body.cv-open .scroll-hint { opacity: 0; pointer-events: none; }
+
+.cv-doc {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--s-9) var(--gutter) var(--s-10);
+}
+.cv-close {
+  position: fixed; top: var(--s-5); right: var(--gutter);
+  background: var(--glass-fill); border: 1px solid var(--line);
+  color: var(--ink-1); font-family: var(--font-mono); font-size: var(--t-label);
+  letter-spacing: var(--track-nav); text-transform: uppercase;
+  padding: 8px 12px; border-radius: var(--r-sm); cursor: pointer;
+}
+.cv-eyebrow { font-size: var(--t-label); letter-spacing: var(--track-label); text-transform: uppercase; color: var(--amber-dim); margin: 0 0 var(--s-3); }
+.cv-doc h1 { font-family: var(--font-display); font-size: var(--t-display); color: var(--ink-0); margin: 0; line-height: 1; }
+.cv-role { font-family: var(--font-display); font-style: italic; color: var(--ink-1); font-size: var(--t-h3); margin: var(--s-2) 0 var(--s-4); }
+.cv-lede { color: var(--ink-1); font-size: var(--t-body); line-height: 1.7; max-width: 56ch; }
+.cv-section { margin-top: var(--s-8); }
+.cv-section h2, .cv-foot h2 { font-size: var(--t-label); letter-spacing: var(--track-label); text-transform: uppercase; color: var(--ink-2); border-bottom: 1px solid var(--line); padding-bottom: var(--s-3); margin: 0 0 var(--s-4); }
+.cv-list { list-style: none; margin: 0; padding: 0; }
+.cv-list li { display: grid; grid-template-columns: 1fr; gap: 2px; padding: var(--s-4) 0; border-bottom: 1px dotted var(--line); }
+.cv-t, .cv-org { color: var(--ink-0); font-size: var(--t-body); font-family: var(--font-display); }
+.cv-i, .cv-date { color: var(--amber-dim); font-size: var(--t-label); letter-spacing: var(--track-label); text-transform: uppercase; }
+.cv-d { color: var(--ink-1); font-size: var(--t-small); line-height: 1.6; }
+.cv-foot { margin-top: var(--s-8); }
+.cv-foot a { color: var(--amber); text-decoration: none; border-bottom: 1px solid var(--line-amber); }
+.cv-note { color: var(--ink-3); font-size: var(--t-label); margin-top: var(--s-5); }
+
+.noscript-cv { max-width: 640px; margin: 12vh auto; padding: 0 var(--gutter); color: var(--ink-1); font-family: var(--font-display); }
+.noscript-cv a { color: var(--amber); }
+
+/* Respect reduced motion for the scroll-hint animation. */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint .mouse::after { animation: none; }
+}
+
+@media (max-width: 820px) {
+  #chrome { flex-wrap: wrap; gap: var(--s-3); padding: var(--s-4); }
+  .chrome-nav { display: none; }
+  .tagline { display: none; }
+}

@@ -1,0 +1,18 @@
+node_modules
+dist
+audio-originals
+dist-ssr
+*.local
+.DS_Store
+.vite
+*.log
+.env
+.env.*
+!.env.example
+
+# Internal working docs + design references — kept local, not published.
+# The build only needs DesignSystem/styles (tokens.css), so everything else
+# under DesignSystem/ (info, uploads, scripts, tests, the Bible HTML) stays local.
+/docs/
+/DesignSystem/*
+!/DesignSystem/styles/
