@@ -276,6 +276,8 @@ export class App {
 
     // --- ui ---
     this.cards = new CardSystem();
+    // Lock page scroll while a reader overlay is open so it scrolls, not the scene.
+    this.cards.onOverlayToggle = (open) => this.scroll.setLocked(open);
     this.syncCardAnchors();
 
     // Connector pull-quotes between stations (Tier C).

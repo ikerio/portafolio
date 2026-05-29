@@ -31,7 +31,13 @@ body {
 /* ---- ScrollSmoother structure ---- */
 #smooth-wrapper { position: relative; z-index: 1; }
 #scroll-sections { position: relative; }
-.chapter { height: 100vh; width: 100%; pointer-events: none; }
+/* Taller-than-viewport chapters lengthen the total scroll, so a given gesture
+   (esp. a sensitive trackpad) advances less of the journey per swipe. Raise
+   this to make scrolling feel calmer / less sensitive. */
+.chapter { height: 140vh; width: 100%; pointer-events: none; }
+
+/* While a reader overlay is open, pin the page so only the overlay scrolls. */
+body.overlay-open { overflow: hidden; }
 
 /* ---- Card overlay (JS-positioned, projected from 3D) ---- */
 #card-layer {

@@ -22,6 +22,7 @@ export class ScrollController {
   private smoother?: ScrollSmoother;
   private trigger: ScrollTrigger;
   private scrollTween?: gsap.core.Tween;
+  private normalizer?: ReturnType<typeof ScrollTrigger.normalizeScroll>;
 
   constructor(settings: QualitySettings) {
     if (settings.enableSmoothScroll) {
@@ -33,6 +34,10 @@ export class ScrollController {
         effects: true,
         normalizeScroll: true,
       });
+      // The touch/wheel normalizer ScrollSmoother created — kept so we can
+      // disable it while a modal overlay is open (otherwise it hijacks the
+      // overlay's own scroll and moves the scene instead).
+      this.normalizer = ScrollTrigger.normalizeScroll();
     }
 
     this.trigger = ScrollTrigger.create({
@@ -59,6 +64,22 @@ export class ScrollController {
 
   refresh(): void {
     ScrollTrigger.refresh();
+  }
+
+  /** Lock the page while a modal overlay is open: freeze the smoother, release
+      the touch/wheel normalizer (so the overlay scrolls natively, not the
+      scene), and mark <body> so CSS can pin it. Reverses cleanly on unlock. */
+  setLocked(locked: boolean): void {
+    if (locked) {
+      this.cancelScrollTween();
+      this.normalizer?.disable();
+      this.smoother?.paused(true);
+      document.body.classList.add('overlay-open');
+    } else {
+      document.body.classList.remove('overlay-open');
+      this.smoother?.paused(false);
+      this.normalizer?.enable();
+    }
   }
 
   /** Stop an in-flight programmatic scroll (e.g. the user grabbed the wheel). */

@@ -232,6 +232,9 @@ export class CardSystem {
   private layer: HTMLElement;
   private readonly world = new Vector3();
   private reduced = false;
+  /** Notified when the reader overlay opens (true) / closes (false) so the
+      host can lock page scrolling — set by App. */
+  onOverlayToggle?: (open: boolean) => void;
 
   // Shared overlay reader.
   private ov: HTMLElement;
@@ -328,6 +331,7 @@ export class CardSystem {
     this.ovNote.style.display = def.note ? '' : 'none';
     this.ov.classList.remove('closing');
     this.ov.classList.add('on');
+    this.onOverlayToggle?.(true);
     if (!this.reduced) {
       this.ov.querySelectorAll<HTMLElement>('.cardov-bg, .cardov-panel').forEach((n) => {
         n.style.animation = 'none';
@@ -338,6 +342,7 @@ export class CardSystem {
   }
 
   private closeOverlay(): void {
+    this.onOverlayToggle?.(false);
     if (this.reduced) {
       this.ov.classList.remove('on', 'closing');
       return;

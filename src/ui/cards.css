@@ -186,6 +186,11 @@
   overflow-x: hidden;
   padding: var(--s-6);
   overflow-wrap: anywhere;
+  /* Keep wheel/touch inside the reader: don't chain to the page, allow the
+     browser's native vertical scrolling here (the scene scroll is locked). */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 .cardov.closing .cardov-panel { animation: cardov-out 0.22s var(--ease-out) forwards; }
 .cardov-panel::before {
