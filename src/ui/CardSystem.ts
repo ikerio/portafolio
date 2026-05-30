@@ -242,8 +242,8 @@ const M_BELOW = 0.84;
 // Discos (station 7) also carries the audio player at the bottom, so its two
 // text cards stack in the upper area instead of flanking the focus.
 const M_DISCOS_STATION = 7;
-const M_DISCOS_TOP = 0.15;
-const M_DISCOS_MID = 0.28;
+const M_DISCOS_TOP = 0.2;
+const M_DISCOS_MID = 0.34;
 
 export class CardSystem {
   private cards: CardInstance[] = [];
