@@ -17,6 +17,10 @@ export class CameraRig {
   private idleEnabled = true;
   private readonly basePos = new Vector3();
   private readonly lookTarget = new Vector3();
+  private readonly back = new Vector3();
+  /** Extra pull-back as a fraction of the camera→target distance, applied on
+      narrow (portrait) viewports so the landscape composition still fits. */
+  private framing = 0;
 
   constructor(aspect: number, positionNodes: Vector3[], targetNodes: Vector3[]) {
     this.camera = new PerspectiveCamera(CAMERA.fov, aspect, CAMERA.near, CAMERA.far);
@@ -24,8 +28,17 @@ export class CameraRig {
     this.positionCurve = new CatmullRomCurve3(positionNodes, false, 'catmullrom', 0.5);
     this.targetCurve = new CatmullRomCurve3(targetNodes, false, 'catmullrom', 0.5);
 
+    this.updateFraming(aspect);
     // Place at the start so the very first frame is composed.
     this.apply(0, 0, 0);
+  }
+
+  /** Recompute the portrait pull-back from the viewport aspect. On screens wider
+      than the design aspect there is none; narrower screens dolly back so the
+      full horizontal extent stays visible (no FOV distortion). */
+  private updateFraming(aspect: number): void {
+    const compensation = CAMERA.designAspect / aspect - 1; // >0 when narrower
+    this.framing = Math.max(0, compensation) * CAMERA.portraitPullback;
   }
 
   setIdle(enabled: boolean): void {
@@ -47,6 +60,13 @@ export class CameraRig {
     this.positionCurve.getPoint(clamp01(posU), this.basePos);
     this.targetCurve.getPoint(clamp01(targetU), this.lookTarget);
 
+    // On narrow screens, dolly the camera straight back along its view axis so
+    // more of the landscape composition fits (the look-at point stays centered).
+    if (this.framing > 0) {
+      this.back.copy(this.basePos).sub(this.lookTarget);
+      this.basePos.addScaledVector(this.back, this.framing);
+    }
+
     this.camera.position.copy(this.basePos);
     if (this.idleEnabled) {
       this.camera.position.x += Math.sin(time * 0.21) * 0.18;
@@ -57,6 +77,7 @@ export class CameraRig {
 
   resize(aspect: number): void {
     this.camera.aspect = aspect;
+    this.updateFraming(aspect);
     this.camera.updateProjectionMatrix();
   }
 }

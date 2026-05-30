@@ -100,6 +100,13 @@ export const CAMERA = {
   fov: 42,
   near: 0.1,
   far: 800,
+  /** Aspect the composition was framed for (landscape). Viewports narrower
+      than this (portrait phones) get a pull-back so the full scene still fits. */
+  designAspect: 1.6,
+  /** How strongly to pull the camera back on narrow screens (0 = none, 1 = fully
+      preserve the landscape horizontal extent). Dollying back scales the whole
+      composition without the perspective distortion a wider FOV would add. */
+  portraitPullback: 0.6,
 } as const;
 
 /** Hero typography: "IT" → "IKER TOLEDO" morphing point cloud. */
