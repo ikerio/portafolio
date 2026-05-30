@@ -107,6 +107,7 @@ export class App {
       window.innerWidth / window.innerHeight,
       this.journey.positions,
       this.journey.targets,
+      this.journey.framing,
     );
     this.post = new PostManager(
       this.renderer.renderer,

@@ -18,27 +18,45 @@ export class CameraRig {
   private readonly basePos = new Vector3();
   private readonly lookTarget = new Vector3();
   private readonly back = new Vector3();
-  /** Extra pull-back as a fraction of the camera→target distance, applied on
-      narrow (portrait) viewports so the landscape composition still fits. */
-  private framing = 0;
+  /** Per-node portrait framing weights (0..1, parallel to the curve nodes) and
+      the aspect-driven scale. The pull-back at a curve param is the interpolated
+      weight × aspectComp — so each shot keeps its authored framing on portrait. */
+  private framingWeights: number[] = [];
+  private aspectComp = 0;
 
-  constructor(aspect: number, positionNodes: Vector3[], targetNodes: Vector3[]) {
+  constructor(
+    aspect: number,
+    positionNodes: Vector3[],
+    targetNodes: Vector3[],
+    framingWeights: number[] = [],
+  ) {
     this.camera = new PerspectiveCamera(CAMERA.fov, aspect, CAMERA.near, CAMERA.far);
 
     this.positionCurve = new CatmullRomCurve3(positionNodes, false, 'catmullrom', 0.5);
     this.targetCurve = new CatmullRomCurve3(targetNodes, false, 'catmullrom', 0.5);
 
+    this.framingWeights = framingWeights;
     this.updateFraming(aspect);
     // Place at the start so the very first frame is composed.
     this.apply(0, 0, 0);
   }
 
-  /** Recompute the portrait pull-back from the viewport aspect. On screens wider
-      than the design aspect there is none; narrower screens dolly back so the
-      full horizontal extent stays visible (no FOV distortion). */
+  /** Aspect-driven pull-back scale: 0 on screens wider than the design aspect,
+      growing as the viewport gets narrower (portrait). Multiplied by each node's
+      weight so only shots that want it pull back. No FOV change → no distortion. */
   private updateFraming(aspect: number): void {
-    const compensation = CAMERA.designAspect / aspect - 1; // >0 when narrower
-    this.framing = Math.max(0, compensation) * CAMERA.portraitPullback;
+    this.aspectComp = Math.max(0, CAMERA.designAspect / aspect - 1) * CAMERA.portraitPullback;
+  }
+
+  /** Interpolated pull-back fraction at curve param u (0 on desktop / no weights). */
+  private framingAt(u: number): number {
+    const w = this.framingWeights;
+    if (this.aspectComp <= 0 || w.length === 0) return 0;
+    const f = clamp01(u) * (w.length - 1);
+    const i0 = Math.floor(f);
+    const i1 = Math.min(i0 + 1, w.length - 1);
+    const weight = w[i0] + (w[i1] - w[i0]) * (f - i0);
+    return weight * this.aspectComp;
   }
 
   setIdle(enabled: boolean): void {
@@ -62,9 +80,12 @@ export class CameraRig {
 
     // On narrow screens, dolly the camera straight back along its view axis so
     // more of the landscape composition fits (the look-at point stays centered).
-    if (this.framing > 0) {
+    // The amount is per-shot (this node's framing weight) so the arch fly-through
+    // and model assembles keep their close framing while the hero pulls back.
+    const pull = this.framingAt(posU);
+    if (pull > 0) {
       this.back.copy(this.basePos).sub(this.lookTarget);
-      this.basePos.addScaledVector(this.back, this.framing);
+      this.basePos.addScaledVector(this.back, pull);
     }
 
     this.camera.position.copy(this.basePos);

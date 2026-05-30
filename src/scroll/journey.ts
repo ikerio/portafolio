@@ -17,6 +17,7 @@ export interface Journey {
   progress: number[]; // scroll progress per camera node (drives the camU timeline)
   snapPoints: number[]; // progress values the scroll snaps to (a subset of nodes)
   snapFlags: boolean[]; // per node — is it a snap stop? (the timeline only eases at stops)
+  framing: number[]; // per node — portrait pull-back weight (0 = original close framing)
   stationProgress: number[]; // progress at each station checkpoint
   stationPoints: Vector3[]; // world point of each station
   stationDirs: Vector3[]; // route tangent (xz, normalized) at each station
@@ -34,6 +35,17 @@ const SYS_EXIT = 12; // and ends this far past it
 const SYS_HEIGHT = 3.6; // eye height — passes under the lintel, through the opening
 const SYS_LOOK = 16; // look-ahead down the path
 
+// Per-shot portrait framing weights (0 = keep the original close framing; 1 =
+// fully fit the landscape width on a narrow screen). Only applied on portrait
+// viewports, scaled by CAMERA.portraitPullback. The arch fly-through and the
+// model-assembly shots stay close (that's their charm); the wide hero wordmark
+// pulls back; the side 3/4 showcase shots get a gentle pull-back so the models
+// read fully without feeling distant.
+const HERO_FRAMING = 0.6;
+const STATION_FRAMING = 0.25;
+const ARCH_FRAMING = 0;
+const FINALE_FRAMING = 0;
+
 export function buildJourney(): Journey {
   const route = ROUTE.map((n) => new Vector3(n[0], n[1], n[2]));
   const curve = new CatmullRomCurve3(route, false, 'catmullrom', 0.5);
@@ -42,15 +54,18 @@ export function buildJourney(): Journey {
   const positions: Vector3[] = [];
   const targets: Vector3[] = [];
   const snapNode: boolean[] = []; // is this camera node a scroll snap stop?
+  const framing: number[] = []; // per node — portrait pull-back weight
 
   // Arrival + hero (near the origin, framing IT → IKER TOLEDO).
   const hero = new Vector3(HERO.position[0], HERO.position[1], HERO.position[2]);
   positions.push(new Vector3(0, 10, 26));
   targets.push(hero.clone());
   snapNode.push(true);
+  framing.push(HERO_FRAMING);
   positions.push(new Vector3(0, 9, 12));
   targets.push(hero.clone());
   snapNode.push(true);
+  framing.push(HERO_FRAMING);
 
   // A composed 3/4 shot at each station — except the Systems arch, which is a
   // forward fly-through (two nodes on the path: before the gate, then past it).
@@ -79,15 +94,18 @@ export function buildJourney(): Journey {
       );
       targets.push(p.clone().addScaledVector(up, LOOK_UP));
       snapNode.push(true);
+      framing.push(ARCH_FRAMING);
       // B — on the path, looking through the gate (NOT a snap stop: the through
       // view happens during the fly, not as a separate stop)
       positions.push(p.clone().addScaledVector(tan, -SYS_APPROACH).addScaledVector(up, SYS_HEIGHT));
       targets.push(p.clone().addScaledVector(tan, SYS_LOOK).addScaledVector(up, SYS_HEIGHT * 0.5));
       snapNode.push(false);
+      framing.push(ARCH_FRAMING);
       // C — past the gate (NOT a snap stop: scroll flies through here straight on to the next landmark)
       positions.push(p.clone().addScaledVector(tan, SYS_EXIT).addScaledVector(up, SYS_HEIGHT));
       targets.push(p.clone().addScaledVector(tan, SYS_EXIT + SYS_LOOK).addScaledVector(up, SYS_HEIGHT * 0.5));
       snapNode.push(false);
+      framing.push(ARCH_FRAMING);
     } else {
       const cam = p
         .clone()
@@ -97,6 +115,7 @@ export function buildJourney(): Journey {
       positions.push(cam);
       targets.push(p.clone().addScaledVector(up, LOOK_UP));
       snapNode.push(true);
+      framing.push(STATION_FRAMING);
     }
   }
 
@@ -110,6 +129,7 @@ export function buildJourney(): Journey {
   positions.push(new Vector3(cx, 150, cz + 36));
   targets.push(new Vector3(cx, 0, cz));
   snapNode.push(true);
+  framing.push(FINALE_FRAMING);
 
   const n = positions.length;
   const tValues = positions.map((_, i) => i / (n - 1));
@@ -130,6 +150,7 @@ export function buildJourney(): Journey {
     progress,
     snapPoints,
     snapFlags: snapNode,
+    framing,
     stationProgress,
     stationPoints,
     stationDirs,
