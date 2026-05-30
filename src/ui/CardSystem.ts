@@ -230,7 +230,14 @@ interface CardInstance {
   cur: number; // smoothed reveal
   tiltX: number;
   tiltY: number;
+  slot: number; // index of this card within its station (0 = first)
+  siblings: number; // how many cards its station has (1 or 2)
 }
+
+// Mobile caption-tray anchors (fraction of viewport height): a station's cards
+// pin above and below the focus point; a lone card sits below it as a caption.
+const M_ABOVE = 0.23;
+const M_BELOW = 0.77;
 
 export class CardSystem {
   private cards: CardInstance[] = [];
@@ -262,7 +269,7 @@ export class CardSystem {
   constructor() {
     this.layer = document.getElementById('card-layer')!;
     STATION_CARDS.forEach((defs, station) => {
-      for (const def of defs) this.cards.push(this.build(station, def));
+      defs.forEach((def, slot) => this.cards.push(this.build(station, def, slot, defs.length)));
     });
     this.ov = this.buildOverlay();
     this.ovKicker = this.ov.querySelector('.cardov-kicker') as HTMLElement;
@@ -276,7 +283,7 @@ export class CardSystem {
     this.mq.addEventListener('change', this.onMq);
   }
 
-  private build(station: number, def: CardDef): CardInstance {
+  private build(station: number, def: CardDef, slot: number, siblings: number): CardInstance {
     const el = document.createElement('article');
     el.className = 'card' + (def.overlay ? ' has-overlay' : '');
     el.style.setProperty('--reveal', '0');
@@ -301,6 +308,8 @@ export class CardSystem {
       cur: 0,
       tiltX: 0,
       tiltY: 0,
+      slot,
+      siblings,
     };
     // Tap/click opens the reader — but only when the card is actually presented.
     // Rich cards use their overlay; on mobile, brief cards get an auto-built one
@@ -413,17 +422,35 @@ export class CardSystem {
       const target = c.station === activeIndex ? reveal : 0;
       c.cur += (target - c.cur) * Math.min(1, dt * 6);
 
-      const base = this.stations[c.station];
-      if (!base || c.cur < 0.002) {
+      if (c.cur < 0.002) {
         c.el.style.opacity = '0';
         c.el.style.setProperty('--reveal', '0');
         c.el.style.pointerEvents = 'none';
         continue;
       }
+      c.el.style.setProperty('--reveal', clamp01(c.cur).toFixed(3));
 
+      // Mobile: ignore the 3D anchor — pin the marker at a fixed screen slot
+      // (above / below the focus point, centered) so it's always in frame when
+      // its station is active. A lone card sits below as a caption.
+      if (this.mobile) {
+        const x = w * 0.5;
+        const y = (c.siblings === 1 ? M_BELOW : c.slot === 0 ? M_ABOVE : M_BELOW) * h;
+        c.el.style.opacity = '1';
+        c.el.style.pointerEvents = c.cur > 0.85 ? 'auto' : 'none';
+        c.el.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+        continue;
+      }
+
+      // Desktop: anchor to the projected 3D point, with the hover tilt.
+      const base = this.stations[c.station];
+      if (!base) {
+        c.el.style.opacity = '0';
+        c.el.style.pointerEvents = 'none';
+        continue;
+      }
       this.world.copy(base).add(c.offset).project(camera);
       const behind = this.world.z > 1;
-      c.el.style.setProperty('--reveal', clamp01(c.cur).toFixed(3));
       c.el.style.opacity = behind ? '0' : '1';
       c.el.style.pointerEvents = !behind && c.cur > 0.85 ? 'auto' : 'none';
 
