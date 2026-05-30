@@ -236,8 +236,14 @@ interface CardInstance {
 
 // Mobile caption-tray anchors (fraction of viewport height): a station's cards
 // pin above and below the focus point; a lone card sits below it as a caption.
-const M_ABOVE = 0.23;
-const M_BELOW = 0.77;
+// Spread wide so the centre (the station) keeps the protagonism.
+const M_ABOVE = 0.2;
+const M_BELOW = 0.84;
+// Discos (station 7) also carries the audio player at the bottom, so its two
+// text cards stack in the upper area instead of flanking the focus.
+const M_DISCOS_STATION = 7;
+const M_DISCOS_TOP = 0.15;
+const M_DISCOS_MID = 0.28;
 
 export class CardSystem {
   private cards: CardInstance[] = [];
@@ -435,7 +441,13 @@ export class CardSystem {
       // its station is active. A lone card sits below as a caption.
       if (this.mobile) {
         const x = w * 0.5;
-        const y = (c.siblings === 1 ? M_BELOW : c.slot === 0 ? M_ABOVE : M_BELOW) * h;
+        let yf: number;
+        if (c.station === M_DISCOS_STATION && c.siblings >= 2) {
+          yf = c.slot === 0 ? M_DISCOS_TOP : M_DISCOS_MID; // stack above; player owns the bottom
+        } else {
+          yf = c.siblings === 1 ? M_BELOW : c.slot === 0 ? M_ABOVE : M_BELOW;
+        }
+        const y = yf * h;
         c.el.style.opacity = '1';
         c.el.style.pointerEvents = c.cur > 0.85 ? 'auto' : 'none';
         c.el.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;

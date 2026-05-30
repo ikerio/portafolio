@@ -9,6 +9,10 @@ import { clamp01 } from '../core/math';
 import { AUDIO } from '../core/config';
 import type { AudioReactor } from '../core/AudioReactor';
 
+// On mobile the player pins low on screen (it owns the bottom slot at the
+// Discos station, where the two text cards stack above the focus).
+const M_PLAYER = 0.86;
+
 export class PlayerCard {
   private el: HTMLElement;
   private toggleBtn: HTMLButtonElement;
@@ -17,6 +21,11 @@ export class PlayerCard {
   private readonly offset = new Vector3(10, -7, -1);
   private cur = 0;
   private base?: Vector3;
+  private mq = window.matchMedia('(max-width: 700px)');
+  private mobile = this.mq.matches;
+  private onMq = (e: MediaQueryListEvent): void => {
+    this.mobile = e.matches;
+  };
 
   constructor(private audio: AudioReactor) {
     this.el = document.createElement('article');
@@ -47,6 +56,8 @@ export class PlayerCard {
       list.appendChild(b);
       this.trackEls.push(b);
     });
+
+    this.mq.addEventListener('change', this.onMq);
   }
 
   /** Live station position (the Discos landmark). */
@@ -56,23 +67,31 @@ export class PlayerCard {
 
   update(reveal: number, camera: PerspectiveCamera, dt: number): void {
     this.cur += (reveal - this.cur) * Math.min(1, dt * 6);
-    if (!this.base || this.cur < 0.002) {
+    if (this.cur < 0.002 || (!this.mobile && !this.base)) {
       this.el.style.opacity = '0';
       this.el.style.setProperty('--reveal', '0');
       this.el.style.pointerEvents = 'none';
       return;
     }
-
-    this.anchor.copy(this.base).add(this.offset).project(camera);
-    const behind = this.anchor.z > 1;
     this.el.style.setProperty('--reveal', clamp01(this.cur).toFixed(3));
-    this.el.style.opacity = behind ? '0' : '1';
-    this.el.style.pointerEvents = !behind && this.cur > 0.85 ? 'auto' : 'none';
 
-    if (!behind) {
-      const x = (this.anchor.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (-this.anchor.y * 0.5 + 0.5) * window.innerHeight;
+    if (this.mobile) {
+      // Fixed bottom slot — same caption layout as the station markers.
+      const x = window.innerWidth * 0.5;
+      const y = window.innerHeight * M_PLAYER;
+      this.el.style.opacity = '1';
+      this.el.style.pointerEvents = this.cur > 0.85 ? 'auto' : 'none';
       this.el.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    } else {
+      this.anchor.copy(this.base!).add(this.offset).project(camera);
+      const behind = this.anchor.z > 1;
+      this.el.style.opacity = behind ? '0' : '1';
+      this.el.style.pointerEvents = !behind && this.cur > 0.85 ? 'auto' : 'none';
+      if (!behind) {
+        const x = (this.anchor.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (-this.anchor.y * 0.5 + 0.5) * window.innerHeight;
+        this.el.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      }
     }
 
     // reflect playback state
@@ -87,6 +106,7 @@ export class PlayerCard {
   }
 
   dispose(): void {
+    this.mq.removeEventListener('change', this.onMq);
     this.el.remove();
   }
 }

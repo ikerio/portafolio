@@ -168,15 +168,22 @@
    lives in the reader overlay (rich, or auto-built for brief cards). The audio
    player card (.player) keeps its inline controls. */
 @media (max-width: 700px) {
+  /* Wide + short bars: more horizontal, less vertical, so they sit lightly over
+     the scene and leave the focus area (the station) the protagonist. */
   .card:not(.player) {
-    width: clamp(150px, 46vw, 230px);
+    width: clamp(240px, 84vw, 440px);
     cursor: pointer;
   }
-  .card:not(.player) .card-inner { padding: var(--s-4); }
+  .card:not(.player) .card-inner { padding: var(--s-3) var(--s-5); }
   .card:not(.player) .card-body,
   .card:not(.player) .card-foot,
   .card:not(.player) .card-more { display: none; }
-  .card:not(.player) .card-tap { display: block; }
+  .card:not(.player) .card-num { margin-bottom: 1px; }
+  .card:not(.player) .card-title { font-size: 16px; line-height: 1.15; }
+  .card:not(.player) .card-tap { display: block; margin-top: 2px; font-size: 10px; }
+
+  /* Audio player widens too (it's positioned at the bottom slot in JS). */
+  .card.player { width: clamp(260px, 86vw, 420px); }
 
   /* Reader overlay goes near full-width so the content has room. */
   .cardov-panel { width: 92vw; }
