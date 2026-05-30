@@ -9,9 +9,10 @@ import { clamp01 } from '../core/math';
 import { AUDIO } from '../core/config';
 import type { AudioReactor } from '../core/AudioReactor';
 
-// On mobile the player pins low on screen (it owns the bottom slot at the
-// Discos station, where the two text cards stack above the focus).
-const M_PLAYER = 0.86;
+// On mobile the player anchors to the BOTTOM of the screen (by its own bottom
+// edge, translate -100% Y) with this gap in px — so the full track list always
+// fits on screen and grows upward, never clipping the last track.
+const M_PLAYER_BOTTOM = 28;
 
 export class PlayerCard {
   private el: HTMLElement;
@@ -76,12 +77,12 @@ export class PlayerCard {
     this.el.style.setProperty('--reveal', clamp01(this.cur).toFixed(3));
 
     if (this.mobile) {
-      // Fixed bottom slot — same caption layout as the station markers.
+      // Anchored to the bottom edge (grows upward) so the full track list fits.
       const x = window.innerWidth * 0.5;
-      const y = window.innerHeight * M_PLAYER;
+      const y = window.innerHeight - M_PLAYER_BOTTOM;
       this.el.style.opacity = '1';
       this.el.style.pointerEvents = this.cur > 0.85 ? 'auto' : 'none';
-      this.el.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+      this.el.style.transform = `translate(-50%, -100%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
     } else {
       this.anchor.copy(this.base!).add(this.offset).project(camera);
       const behind = this.anchor.z > 1;
