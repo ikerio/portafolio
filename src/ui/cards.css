@@ -152,6 +152,37 @@
 }
 .card.has-overlay:hover .card-more { opacity: 1; color: var(--amber); }
 
+/* Mobile-only tap hint (shown when cards collapse to title markers). */
+.card-tap {
+  display: none;
+  margin-top: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--amber-dim);
+}
+
+/* ===== Mobile / portrait phones: cards become tappable title markers =====
+   Hide the body + foot, shrink the card, reveal the tap hint. The full content
+   lives in the reader overlay (rich, or auto-built for brief cards). The audio
+   player card (.player) keeps its inline controls. */
+@media (max-width: 700px) {
+  .card:not(.player) {
+    width: clamp(150px, 46vw, 230px);
+    cursor: pointer;
+  }
+  .card:not(.player) .card-inner { padding: var(--s-4); }
+  .card:not(.player) .card-body,
+  .card:not(.player) .card-foot,
+  .card:not(.player) .card-more { display: none; }
+  .card:not(.player) .card-tap { display: block; }
+
+  /* Reader overlay goes near full-width so the content has room. */
+  .cardov-panel { width: 92vw; }
+  .cardov-scroll { max-height: calc(88vh - 2 * var(--s-5)); padding: var(--s-5); }
+}
+
 .cardov { position: fixed; inset: 0; z-index: 70; display: none; }
 .cardov.on { display: block; }
 .cardov-bg {

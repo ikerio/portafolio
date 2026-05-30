@@ -28,6 +28,12 @@ interface CardDef {
   overlay?: OverlayDef; // present → card is expandable
 }
 
+/** A minimal overlay synthesized from a brief card so its body text stays
+    reachable on mobile, where the card collapses to just a title marker. */
+function briefOverlay(def: CardDef): OverlayDef {
+  return { kicker: def.num, title: def.title, body: [def.body], note: def.foot[0] };
+}
+
 // Content per station (index = station). Copy in Spanish; rich sections carry an
 // overlay. ⚠ = needs Iker's confirmation (year/fact gaps flagged in the chat).
 const STATION_CARDS: CardDef[][] = [
@@ -236,6 +242,15 @@ export class CardSystem {
       host can lock page scrolling — set by App. */
   onOverlayToggle?: (open: boolean) => void;
 
+  // On narrow (portrait phone) viewports every card collapses to a tappable
+  // title marker and opens the reader overlay — rich cards their own overlay,
+  // brief cards an auto-built one. Kept in sync with the CSS breakpoint.
+  private mobile = false;
+  private mq = window.matchMedia('(max-width: 700px)');
+  private onMq = (e: MediaQueryListEvent): void => {
+    this.mobile = e.matches;
+  };
+
   // Shared overlay reader.
   private ov: HTMLElement;
   private ovKicker: HTMLElement;
@@ -257,6 +272,8 @@ export class CardSystem {
     this.ovNote = this.ov.querySelector('.cardov-note') as HTMLElement;
     this.bindPointer();
     window.addEventListener('keydown', this.onKey);
+    this.mobile = this.mq.matches;
+    this.mq.addEventListener('change', this.onMq);
   }
 
   private build(station: number, def: CardDef): CardInstance {
@@ -273,6 +290,7 @@ export class CardSystem {
         <div class="card-body">${def.body}</div>
         ${more}
         <div class="card-foot"><span>${def.foot[0]}</span><span>${def.foot[1]}</span></div>
+        <div class="card-tap">Toca para ampliar ↗</div>
       </div>`;
     this.layer.appendChild(el);
     const inst: CardInstance = {
@@ -284,12 +302,14 @@ export class CardSystem {
       tiltX: 0,
       tiltY: 0,
     };
-    if (def.overlay) {
-      el.addEventListener('click', () => {
-        // only when the card is actually presented (interactive)
-        if (inst.cur > 0.85 && inst.overlay) this.openOverlay(inst.overlay);
-      });
-    }
+    // Tap/click opens the reader — but only when the card is actually presented.
+    // Rich cards use their overlay; on mobile, brief cards get an auto-built one
+    // (so their text is reachable even though the marker hides the body).
+    el.addEventListener('click', () => {
+      if (inst.cur <= 0.85) return;
+      const ov = inst.overlay ?? (this.mobile ? briefOverlay(def) : undefined);
+      if (ov) this.openOverlay(ov);
+    });
     return inst;
   }
 
@@ -419,6 +439,7 @@ export class CardSystem {
 
   dispose(): void {
     window.removeEventListener('keydown', this.onKey);
+    this.mq.removeEventListener('change', this.onMq);
     this.cards.forEach((c) => c.el.remove());
     this.cards = [];
     this.ov.remove();
